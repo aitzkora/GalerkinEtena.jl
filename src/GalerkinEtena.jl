@@ -1,6 +1,19 @@
 module GalerkinEtena
 
-include("mesh.jl")
+using LinearAlgebra
+using SpecialFunctions
+using Revise
+using Test
+
+
+struct QuadratureFormula
+    points::Array{Float64}
+    weights::Array{Float64}
+end
+
+export vander,GLT,JacobiGQ, JacobiGL
+
 include("integrate.jl")
+include("mesh.jl")
 
 end # module
