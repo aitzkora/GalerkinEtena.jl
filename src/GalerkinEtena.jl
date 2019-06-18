@@ -11,7 +11,7 @@ struct QuadratureFormula
     weights::Array{Float64}
 end
 
-export vander,GLT,JacobiGQ, JacobiGL
+export vander, GLT, JacobiGQ, JacobiGL, integrate, JacobiP, lagrange
 
 include("integrate.jl")
 include("mesh.jl")
