@@ -74,11 +74,11 @@ end
 
 """
 JacobiP
-evaluate the Jacobi polynomial of type (α,β) > -1 (α+β ≢ -1) at points x for order N and returns P[1:length(xp))]
- Note   : They are normalized to be orthonormal.
-taken from nodal-dg matlab code
+evaluate the Jacobi polynomial of type (α,β) > -1 (α+β ≢ -1) at points x for order N 
+Note : the Jacobi polynomial is normalize by a factor γₙ = √(2/(2n+1))
+taken from nodal-dg matlab code [https://github.com/tcew/nodal-dg]
 """
-function JacobiP(x,α::Float64,β::Float64,N::Int)
+function JacobiP(x::Array{Float64},α::Float64,β::Float64,N::Int)
 xp = copy(x)
 # Turn points into row if needed.
 PL = zeros(N+1,size(xp,1))
@@ -88,7 +88,7 @@ PL = zeros(N+1,size(xp,1))
 γ0 = 2. .^(α+β+1.)/(α+β+1)*γ(α+1)*γ(β+1)/γ(α+β+1)
 PL[1,:] .= 1.0/√γ0
 if (N==0)
-   return PL
+    return PL[N+1,:]
 end
 γ1 = (α+1)*(β+1)/(α+β+3)*γ0;
 PL[2,:] = ((α+β+2)*xp/2 .+ (α-β)/2)/√γ1;
@@ -110,6 +110,49 @@ end
 P = PL[N+1,:]
 end
 
+
+"""
+legendre(x::Array{Float64}, n::Int)
+"""
+function legendre(x::Array{Float64}, n::Int)
+    γₙ = 2/(2n+1.)
+    if (n == 0)
+        return ones(size(x)) ./ √γₙ
+    end
+    if (n == 1)
+      return x ./ √γₙ
+    end
+    P = zeros(size(x, 1), n + 1)
+    P[:, 1] = ones(size(x))
+    P[:, 2] = x
+    for i=3:n+1
+        P[:, i] = (2*i-3.)/(i-1) .* x .* P[:,i-1] - (i-2.)/(i-1) .* P[:, i - 2]
+    end
+    return P[:, n+1] ./ √γₙ
+end
+"""
+diff_legendre(x::Array{Float64}, n::Int)
+"""
+function diff_legendre(x::Array{Float64}, n::Int)
+    γₙ = 2/(2n+1.)
+    if (n == 0)
+        return zeros(size(x))
+    end
+    if (n == 1)
+        return ones(size(x)) ./ √γₙ
+    end
+    P = zeros(size(x, 1), n + 1)
+    P¹ = zeros(size(x, 1), n + 1)
+    P[:, 1] = ones(size(x))
+    P[:, 2] = x
+    P¹[:, 1] = zeros(size(x))
+    P¹[:, 2] = ones(size(x))
+    for i=3:n+1
+        P[:, i] = (2*i-3.)/(i-1) .* x .* P[:,i-1] - (i-2.)/(i-1) .* P[:, i - 2]
+        P¹[:, i] = (2*i-3.)/(i-1) .* (P[:,i-1] + x .* P¹[:, i - 1]) - (i-2.)/(i-1) .* P¹[:, i - 2]
+    end
+    return P¹[:, n+1] ./ √γₙ
+end
 """
 lagrange(α::Array{Float64})
 computes the n² coefficients of the lagrange basis polynomial

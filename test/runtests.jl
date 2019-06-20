@@ -6,7 +6,8 @@ using Test
     @test JacobiGQ(3.14, 2., 5).points ≈ x atol=1e-12
     @test JacobiGQ(3.14, 2., 5).weights ≈ w atol=1e-12
     peval_check = [ 1.492369633161560e+01; 1.522362625780301e+03; 1.385512703514001e+04]
-    @test JacobiP([1,2,3],2.,3.14,5) ≈ peval_check atol=1e-11
+    @test JacobiP([1.,2,3],2.,3.14,5) ≈ peval_check atol=1e-11
+    @test legendre([0.65],8) ≈ JacobiP([0.65], 0., 0., 8) atol=1e-12
 end
 
 @testset "integrate " begin
