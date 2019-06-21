@@ -113,6 +113,7 @@ end
 
 """
 legendre(x::Array{Float64}, n::Int)
+evaluate the legendre polynomial of degree n at x
 """
 function legendre(x::Array{Float64}, n::Int)
     γₙ = 2/(2n+1.)
@@ -131,16 +132,16 @@ function legendre(x::Array{Float64}, n::Int)
     return P[:, n+1] ./ √γₙ
 end
 """
-diff_legendre(x::Array{Float64}, n::Int)
+Legendre(x::Array{Float64}, n::Int)
+computes the pair
+```math
+P_{ij} = P^j(x_i) \\mbox {and} P'_{ij} = \\frac{dP^j}{dx}(x_i) \\mbox { where } 
+P^n(x) = \\left(\\frac{2^nn!}\\right)\\frac{d^n}{dx^n}\\!\\left[(x^2-1)^n\\right]
+```
+Note 
 """
-function diff_legendre(x::Array{Float64}, n::Int)
-    γₙ = 2/(2n+1.)
-    if (n == 0)
-        return zeros(size(x))
-    end
-    if (n == 1)
-        return ones(size(x)) ./ √γₙ
-    end
+function Legendre(x::Array{Float64}, n::Int)
+    γ = 2 ./(2(0:n).+1.)'
     P = zeros(size(x, 1), n + 1)
     P¹ = zeros(size(x, 1), n + 1)
     P[:, 1] = ones(size(x))
@@ -151,7 +152,7 @@ function diff_legendre(x::Array{Float64}, n::Int)
         P[:, i] = (2*i-3.)/(i-1) .* x .* P[:,i-1] - (i-2.)/(i-1) .* P[:, i - 2]
         P¹[:, i] = (2*i-3.)/(i-1) .* (P[:,i-1] + x .* P¹[:, i - 1]) - (i-2.)/(i-1) .* P¹[:, i - 2]
     end
-    return P¹[:, n+1] ./ √γₙ
+    return P./ .√γ,P¹ ./ .√γ
 end
 """
 lagrange(α::Array{Float64})
