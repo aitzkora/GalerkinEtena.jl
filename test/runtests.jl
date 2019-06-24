@@ -14,3 +14,10 @@ end
    q = JacobiGQ(0.,0.,10)
    @test integrate(x->x*x, q) ≈ 2/3. atol=1.e-12
 end
+
+@testset "assemble" begin
+   m = Mesh1D([0., 0.5, 1.5, 3.0, 2.5], [[1; 2], [2; 3], [3; 5], [5; 4]])
+   h = [1 2; 1 3; 2 4; 3 4 ]
+   g = [1 1 ; 2 1; 2 1; 2 2 ]
+   @test faces2Vertices(m) == (h,g)
+end
