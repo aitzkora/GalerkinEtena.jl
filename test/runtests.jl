@@ -17,7 +17,14 @@ end
 
 @testset "assemble" begin
    m = Mesh1D([0., 0.5, 1.5, 3.0, 2.5], [[1; 2], [2; 3], [3; 5], [5; 4]])
-   h = [1 2; 1 3; 2 4; 3 4 ]
-   g = [1 1 ; 2 1; 2 1; 2 2 ]
-   @test faces2Vertices(m) == (h,g)
+   e2e = [1 2; 1 3; 2 4; 3 4 ]
+   e2f = [1 1 ; 2 1; 2 1; 2 2 ]
+   @test connect1D(m) == (e2e,e2f)
 end
+
+@testest "RK4" begin
+   f=(x,y)->[x[1,1]  0. ; 0. 2*x[2,2]]
+   sol=rk4(f,[1 2; 3 1],0., 1.,1e-3)
+   @test sol ≈ [exp(1.) 2 ; 3 exp(2.)] atol=1e-4
+end
+
