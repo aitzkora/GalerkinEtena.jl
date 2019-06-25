@@ -1,40 +1,108 @@
 """
 computeElementaryMatrices(Np::Int)
-computes the elementary matrices 𝓜 , 𝓢 on the Gauß-Lobatto grid on [-1,1]
+computes the elementary matrices  𝓥, 𝓓ᵣ on the Gauß-Lobatto grid on [-1,1]
 """
 function computeElementaryMatrices(ξ::Array{Float64},N::Int)
     𝓥, 𝓥ᵣ = Legendre(ξ, N)
     𝓓ᵣ = 𝓥ᵣ / 𝓥
-    𝓜  = inv(𝓥 * 𝓥')
-    return 𝓜 , 𝓓ᵣ
+    return 𝓥, 𝓓ᵣ
 end
 
-
-function genGrid(ξ::Array{Float64}, m::Mesh1D)
+"""
+genGrid(m::Mesh1D, ξ::Array{Float64})
+generate a matrix corresponding to all degree of freedom points : K x #ξ
+"""
+function genGrid(m::Mesh1D, ξ::Array{Float64})
     np = size(ξ, 1)
     va = (x->x[1]).(m.cells)
     vb = (x->x[2]).(m.cells)
-    grid = ones(1, np) .* m.points[va] + (ξ' .+ 1) ./ 2 .* (m.points[vb] - m.points[va])
+    grid = ones(np, 1) .* m.points[va]' + (ξ .+ 1) ./ 2 .* (m.points[vb] - m.points[va])'
     return grid
 end
 
-function faces2Vertices(m::Mesh1D)
+"""
+computeMask(ξ::Array{Float64,1})
+retrieves the index of the Boundary on the reference element
+"""
+function computeMask(ξ::Array{Float64,1})
+    nodePrecision = 1e-12
+    m1 = findall(abs.(ξ .+ 1) .< nodePrecision)
+    m2 = findall(abs.(ξ .- 1) .< nodePrecision)
+    return [m1; m2]
+end
+
+
+"""
+e2e, e2f = connect1D(m::Mesh1D)
+
+constructs the Element to Element (e2e) and Element to Face (e2f) matrices :
+e2eᵢⱼ = k ⇔ element i is connected to k trough its j face if k ≠ i
+e2fᵢⱼ = l ⇔ element i is connected to k trough its j face corresponding to l face in element k
+"""
+
+function connect1D(m::Mesh1D)
     K = length(m.cells)
     Nfaces = length(m.cells[1]) # assume nb_faces = cst here 2
     Ntot = Nfaces * K
-    F2V = sparse(collect(1:Ntot), vcat(m.cells...), ones(Int64, Ntot) )
-    F2F = F2V*F2V' - spdiagm(0=>ones(Int64,Ntot))
+    F2V = sparse(collect(1:Ntot), vcat(m.cells...), ones(Int8, Ntot) )
+    F2F = F2V*F2V' - spdiagm(0=>ones(Int8,Ntot)) # if Fᵢⱼ = 1, global face i is connected to global face j
     faces = findnz(F2F)
+    # convert face global indices to (element,face) ordering
     i2s=CartesianIndices((1:Nfaces,1:K))
     f1 = i2s[faces[1]]
     f2 = i2s[faces[2]]
     s2i = LinearIndices((1:K,1:Nfaces))
     ind = [s2i[z[2],z[1]] for z in f1]
-    E2E = [1:K;]*ones(Int, 1, Nfaces)
-    E2F = ones(Int, K, 1) * (1:Nfaces)'
+    # rearrange into (K,Nfaces) shaped arrays
+    E2E = [1:K;]*ones(Int64, 1, Nfaces)
+    E2F = ones(Int64, K, 1) * (1:Nfaces)'
     E2E[ind] = [z[2] for z in f2]
     E2F[ind] = [z[1] for z in f2]
     return  E2E, E2F
 end
 
 
+struct DGDiscretization
+    x::Array{Float64,2} # Grid of discretization (Np x K+1)
+    vmapM::Array{Float64,1} # flattened array containing of size 2K containing the indices in order (Np, K)
+    vmapP::Array{Float64,1}
+end
+
+"""
+[x, vmapM, vmapP] =  DGDiscretization(m::Mesh1D, ξ::Array{Float64,1})
+
+return a DG discretization along the mesh and the local discretization ξ
+
+"""
+function DGDiscretization(m::Mesh1D, ξ::Array{Float64})
+    Np = length(ξ)
+    K = length(m.cells)
+    Nfaces = length(m.cells[1])
+    nodeIds = reshape(1:K*Np, Np, K)
+
+    fmask = computeMask(ξ)
+    vmapM = nodeIds[fmask[:],1:K]
+
+    vmapP = zeros(Int64, Nfaces, K)
+
+    e2e, e2f = connect1D(m)
+
+    x = genGrid(m, ξ )
+
+    for k₁ = 1: K
+        for f₁ = 1: Nfaces
+            k₂ = e2e[k₁, f₁]
+            f₂ = e2f[k₁, f₁]
+            # k₂, f₂ is the edge of the neighbour
+            vidM = vmapM[f₁, k₁]
+            vidP = vmapM[f₂, k₂]
+            if (norm(x[vidM]-x[vidP]) < 1e-12)
+                vmapP[f₁, k₁] = vidP
+            end
+        end
+    end
+
+    vmapP = vmapP[:]
+    vmapM = vmapM[:]
+    return  x, vmapP, vmapM
+end
