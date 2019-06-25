@@ -8,13 +8,15 @@ struct Advec1D
     vmapP::Array{Int64,1}
     nx::Array{Float64,2}
     rx::Array{Float64,2}
+    𝓓ᵣ::Array{Float64,2}
     fScale::Array{Float64,2}
     lift::Array{Float64,2}
+
 
     function Advec1D(a::Float64, b::Float64, K::Int64, Np::Int64)
         K = K
         Np = Np
-        m = Mesh1D(a, b,  K + 1)
+        m = Mesh1D(a, b,  K)
         ξ = JacobiGL(0., 0., Np - 1)
         nx = [-ones(1, K); ones(1, K)];
         x, vmapM, vmapP = DGDiscretization(m, ξ)
@@ -31,7 +33,7 @@ struct Advec1D
         Emat[Np, 2] = 1.
         lift = 𝓥 * 𝓥' * Emat
         # create the object
-        new(Np, K, m, ξ, x, vmapM, vmapP, nx, rx, fScale, lift)
+        new(Np, K, m, ξ, x, vmapM, vmapP, nx, rx, 𝓓ᵣ, fScale, lift)
     end
 end
 

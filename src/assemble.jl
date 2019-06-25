@@ -62,12 +62,6 @@ function connect1D(m::Mesh1D)
 end
 
 
-struct DGDiscretization
-    x::Array{Float64,2} # Grid of discretization (Np x K+1)
-    vmapM::Array{Float64,1} # flattened array containing of size 2K containing the indices in order (Np, K)
-    vmapP::Array{Float64,1}
-end
-
 """
 [x, vmapM, vmapP] =  DGDiscretization(m::Mesh1D, ξ::Array{Float64,1})
 
