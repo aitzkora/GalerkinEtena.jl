@@ -33,16 +33,17 @@ function integrate(f, q::QuadratureFormula)
 end
 
 """
+JacobiGL(α::Float64, β::Float64, N::Int)
+
 Compute the N'th order Gauß Lobatto quadrature formula points
 """
 function JacobiGL(α::Float64, β::Float64, N::Int)
     x = zeros(N + 1, 1)
-    if (N == 1) 
+    if (N == 1)
         return  [-1.,1.]
     end
     gq= JacobiGQ(α + 1, β + 1, N - 2)
     x = [-1; gq.points; 1]
-
 end
 
 
@@ -50,7 +51,7 @@ end
 vander(x, n)
 computes the Vandermonde matrix V(x₁, x₂, ... , xₚ) defined by
 ```math
-V_{ij} = [x_j^(i-1)]_{ij} \\, \\forall \\, i=1,\\cdots,p \\, j = 1,\\cdots,\\n
+V_{ij} = [x_j^{i-1}]_{ij} \\, \\forall \\, i=1,\\cdots,p \\, j = 1,\\cdots,\\n
 ```
 optional argument n enable us to choose the number of rows
 """
@@ -132,10 +133,10 @@ function legendre(x::Array{Float64}, n::Int)
     return P[:, n+1] ./ √γₙ
 end
 """
-Legendre(x::Array{Float64}, n::Int)
-computes the pair
+Legendre(x::Array{Float64}, n::Int) computes the pair
+
 ```math
-P_{ij} = P^j(x_i) \\mbox {and} P'_{ij} = \\frac{dP^j}{dx}(x_i) \\mbox { where } 
+P_{ij} = P^j(x_i) \\mbox{ and } P'_{ij} = \\frac{dP^j}{dx}(x_i) \\mbox{ where }
 P^n(x) = \\left(\\frac{2^nn!}\\right)\\frac{d^n}{dx^n}\\!\\left[(x^2-1)^n\\right]
 ```
 Note 

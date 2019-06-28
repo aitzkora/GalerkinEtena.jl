@@ -22,7 +22,7 @@ end
 
 """
 computeMask(ξ::Array{Float64,1})
-retrieves the index of the Boundary on the reference element
+retrieves the index of the boundary nodes on the reference element
 """
 function computeMask(ξ::Array{Float64,1})
     nodePrecision = 1e-12

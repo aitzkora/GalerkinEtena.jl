@@ -1,3 +1,13 @@
+"""
+rk4(op, u₀::Array{Float64,2}, tInit::Float64, tFinal::Float64, dt::Float64)
+apply a Runge Kutta Method of order 4 to the system
+of
+```math
+\partial_t u = op(u, t)
+u(x,tInit) = u\_0
+```
+"""
+
 function rk4(op, u₀::Array{Float64,2}, tInit::Float64, tFinal::Float64, dt::Float64)
     # Low storage Runge-Kutta coefficients
     rk4a = [ 0.0 
@@ -20,6 +30,8 @@ function rk4(op, u₀::Array{Float64,2}, tInit::Float64, tFinal::Float64, dt::Fl
     resu = zeros(size(u))
     Nsteps = Int64(ceil((tFinal - tInit) / dt))
     dt = (tFinal-tInit) /Nsteps
+#    println("dt = $dt")
+#    println("Nsteps = $Nsteps")
     for tstep = 1:Nsteps
         for INTRK=1:5
             tloc = t + rk4c[INTRK] .* dt
@@ -28,6 +40,9 @@ function rk4(op, u₀::Array{Float64,2}, tInit::Float64, tFinal::Float64, dt::Fl
             u = u + rk4b[INTRK] .* resu
         end
         t += dt
+#        if (tstep % 10  == 0)
+#            println("t = $t, k = $tstep u[1,1] = ", u[1,1])
+#        end
     end
     return u
 end
