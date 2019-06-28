@@ -3,6 +3,6 @@
 Documentation for GalerkinEtena.jl
 
 ```@autodocs
-Modules = [LyonCalcul]
+Modules = [GalerkinEtena]
 Order   = [:type, :function]
 ```
