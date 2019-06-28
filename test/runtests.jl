@@ -22,9 +22,9 @@ end
    @test connect1D(m) == (e2e,e2f)
 end
 
-@testest "RK4" begin
+@testset "RK4" begin
    f=(x,y)->[x[1,1]  0. ; 0. 2*x[2,2]]
-   sol=rk4(f,[1 2; 3 1],0., 1.,1e-3)
+   sol=rk4(f,[1 2; 3 1.],0., 1.,1e-3)
    @test sol ≈ [exp(1.) 2 ; 3 exp(2.)] atol=1e-4
 end
 

@@ -18,7 +18,7 @@ function rk4(op, u₀::Array{Float64,2}, tInit::Float64, tFinal::Float64, dt::Fl
     t = tInit
     u = copy(u₀)
     resu = zeros(size(u))
-    Nsteps = ceil((tFinal - tInit) / dt)
+    Nsteps = Int64(ceil((tFinal - tInit) / dt))
     dt = (tFinal-tInit) /Nsteps
     for tstep = 1:Nsteps
         for INTRK=1:5
