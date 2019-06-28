@@ -4,7 +4,9 @@ using GalerkinEtena
 makedocs(
     sitename = "GalerkinEtena",
     format = Documenter.HTML(),
-    modules = [GalerkinEtena]
+    modules = [GalerkinEtena],
+    doctest=false,
+    pages = ["Documentation" => "index.md"]
 )
 
 # Documenter can also automatically deploy documentation to gh-pages.
