@@ -3,8 +3,8 @@ rk4(op, u₀::Array{Float64,2}, tInit::Float64, tFinal::Float64, dt::Float64)
 apply a Runge Kutta Method of order 4 to the system
 of
 ```math
-\partial_t u = op(u, t)
-u(x,tInit) = u\_0
+\\partial_t u = op(u, t)
+u(x,tInit) = u_0
 ```
 """
 
