@@ -10,7 +10,7 @@ using Test
     @test Legendre([0.65],8)[1][:,9] ≈ JacobiP([0.65], 0., 0., 8) atol=1e-12
 end
 
-@testset "integrate " begin
+@testset "integrate" begin
    q = JacobiGQ(0.,0.,10)
    @test integrate(x->x*x, q) ≈ 2/3. atol=1.e-12
 end
@@ -27,4 +27,12 @@ end
    sol=rk4(f,[1 2; 3 1.],0., 1.,1e-3)
    @test sol ≈ [exp(1.) 2 ; 3 exp(2.)] atol=1e-4
 end
-
+@testset "Discretization" begin
+    P_check = [1, 10, 9, 19, 18, 28, 27, 37, 36, 46, 45, 55, 54, 64, 63, 73, 72, 82, 81, 90]
+    M_check = [1, 9, 10, 18, 19, 27, 28, 36, 37, 45, 46, 54, 55, 63, 64, 72, 73, 81, 82, 90]
+    m = Mesh1D(0., 1.,  10)
+    ξ = JacobiGL(0., 0., 8)
+    x, vmapM, vmapP = DGDiscretization(m, ξ)
+    @test vmapM == M_check
+    @test vmapP == P_check
+end
