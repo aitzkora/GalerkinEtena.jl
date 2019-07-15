@@ -133,10 +133,16 @@ function legendre(x::Array{Float64}, n::Int)
     return P[:, n+1] ./ √γₙ
 end
 """
-Legendre(x::Array{Float64}, n::Int) computes the pair
-
+Legendre(x::Array{Float64}, n::Int) computes the matrices
 ```math
-P_{ij} = P^j(x_i) \\mbox{ and } P'_{ij} = \\frac{dP^j}{dx}(x_i) \\mbox{ where }
+P_{ij} = P^j(x_i)
+```
+and 
+```math
+P'_{ij} = \\frac{dP^j}{dx}(x_i)
+```
+where
+```math
 P^n(x) = \\left(\\frac{2^nn!}\\right)\\frac{d^n}{dx^n}\\!\\left[(x^2-1)^n\\right]
 ```
 Note 
