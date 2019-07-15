@@ -98,5 +98,5 @@ function DGDiscretization(m::Mesh1D, ξ::Array{Float64})
 
     vmapP = vmapP[:]
     vmapM = vmapM[:]
-    return  x, vmapP, vmapM
+    return  x, vmapM, vmapP
 end
