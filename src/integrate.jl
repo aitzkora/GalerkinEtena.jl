@@ -1,4 +1,3 @@
-
 """
 JacobiGQ(α::Float64,β::Float64,N::Int)
 
@@ -64,7 +63,7 @@ end
 
 """
 GLT(N)
-computes the Gauß-Lobatto-Чебышёв points defined by 
+computes the Gauß-Lobatto-Чебышёв points defined by
 ```math
 T_k = -\\cos \\left( \\frac{k-1}{n-1}\\pi \\right)
 ```
@@ -113,26 +112,6 @@ end
 
 
 """
-legendre(x::Array{Float64}, n::Int)
-evaluate the legendre polynomial of degree n at x
-"""
-function legendre(x::Array{Float64}, n::Int)
-    γₙ = 2/(2n+1.)
-    if (n == 0)
-        return ones(size(x)) ./ √γₙ
-    end
-    if (n == 1)
-      return x ./ √γₙ
-    end
-    P = zeros(size(x, 1), n + 1)
-    P[:, 1] = ones(size(x))
-    P[:, 2] = x
-    for i=3:n+1
-        P[:, i] = (2*i-3.)/(i-1) .* x .* P[:,i-1] - (i-2.)/(i-1) .* P[:, i - 2]
-    end
-    return P[:, n+1] ./ √γₙ
-end
-"""
 Legendre(x::Array{Float64}, n::Int) computes the matrices
 ```math
 P_{ij} = P^j(x_i)
@@ -143,7 +122,7 @@ P'_{ij} = \\frac{dP^j}{dx}(x_i)
 ```
 where
 ```math
-P^n(x) = \\left(\\frac{2^nn!}\\right)\\frac{d^n}{dx^n}\\!\\left[(x^2-1)^n\\right]
+P^n(x) = \\frac{1}{2^nn!}\\frac{d^n}{dx^n}\\left((x^2-1)^n\\right)
 ```
 Note 
 """
