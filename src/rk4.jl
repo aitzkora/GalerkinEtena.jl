@@ -8,7 +8,7 @@ u(x,tInit) = u_0
 ```
 """
 
-function rk4(op, u₀::Array{Float64,2}, tInit::Float64, tFinal::Float64, dt::Float64)
+function rk4(op::Function, u₀::Array{Float64,2}, tInit::Float64, tFinal::Float64, dt::Float64)
     # Low storage Runge-Kutta coefficients
     rk4a = [ 0.0 
             -567301805773.0/1357537059087.0
@@ -30,19 +30,14 @@ function rk4(op, u₀::Array{Float64,2}, tInit::Float64, tFinal::Float64, dt::Fl
     resu = zeros(size(u))
     Nsteps = Int64(ceil((tFinal - tInit) / dt))
     dt = (tFinal-tInit) /Nsteps
-#    println("dt = $dt")
-#    println("Nsteps = $Nsteps")
     for tstep = 1:Nsteps
         for INTRK=1:5
             tloc = t + rk4c[INTRK] .* dt
             rhsu = op(u, tloc)
             resu = rk4a[INTRK] .* resu .+ dt .* rhsu
-            u = u + rk4b[INTRK] .* resu
+            u += rk4b[INTRK] .* resu
         end
         t += dt
-#        if (tstep % 10  == 0)
-#            println("t = $t, k = $tstep u[1,1] = ", u[1,1])
-#        end
     end
     return u
 end
