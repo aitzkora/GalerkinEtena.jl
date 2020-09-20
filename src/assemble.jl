@@ -10,7 +10,10 @@ end
 
 """
 genGrid(m::Mesh1D, ξ::Array{Float64})
-generate a matrix corresponding to all degree of freedom points : K x #ξ
+generate a (#ξ,K) matrix corresponding to all degree of freedom points :
+```math
+G_{ij} = x^k_i \\in D^k
+```
 """
 function genGrid(m::Mesh1D, ξ::Array{Float64})
     np = size(ξ, 1)
@@ -66,6 +69,10 @@ end
 [x, vmapM, vmapP] =  DGDiscretization(m::Mesh1D, ξ::Array{Float64,1})
 
 return a DG discretization along the mesh and the local discretization ξ
+x is of size (#ξ, K )
+vmapP and vmapP is a vector of size 2*K, if we reshape into a (2,K), matrix, then
+[vmapM[1, i], vmapM[2, i]] are the indices of internal vertices of the i element
+[vmapP[1, i], vmapP[2, i]] are the indices of external vertices of the i element
 
 """
 function DGDiscretization(m::Mesh1D, ξ::Array{Float64})
@@ -87,15 +94,16 @@ function DGDiscretization(m::Mesh1D, ξ::Array{Float64})
         for f₁ = 1: Nfaces
             k₂ = e2e[k₁, f₁]
             f₂ = e2f[k₁, f₁]
-            # k₂, f₂ is the edge of the neighbour
-            vidM = vmapM[f₁, k₁]
-            vidP = vmapM[f₂, k₂]
-            if (norm(x[vidM]-x[vidP]) < 1e-12)
-                vmapP[f₁, k₁] = vidP
+            # f₂ is the corresponding face of f₁ in the neighbour k₂ 
+            idM = vmapM[f₁, k₁]
+            idP = vmapM[f₂, k₂]
+            if (norm(x[idM]-x[idP]) < 1e-12)
+                vmapP[f₁, k₁] = idP
             end
         end
     end
 
+    # flatten the matrices
     vmapP = vmapP[:]
     vmapM = vmapM[:]
     return  x, vmapM, vmapP

@@ -1,3 +1,14 @@
+"""
+structure for modelizing the 1D advection equation
+```math
+\\frac{\\partialu}{\\partial t} + a \\frac{\\partial}{\\partial x} = 0
+```
+with
+```math
+u(x,0) = \\sin (x) \\\\
+u(0,t) = -\\sin (a t)
+```
+"""
 struct Advec1D
     Np::Int64
     K::Int64
@@ -21,13 +32,14 @@ struct Advec1D
         nx = [-ones(1, K); ones(1, K)];
         x, vmapM, vmapP = DGDiscretization(m, ξ)
         fmask = computeMask(ξ)
-        # compute the metrics and Jacobian
+        # compute the metric and jacobian
         𝓥, 𝓓ᵣ = computeElementaryMatrices(ξ, Np - 1)
         J = 𝓓ᵣ * x
         rx = 1. ./ J
         fScale = 1. ./ J[fmask, :]
 
-        # compute the lift
+        # compute the lift this matrix operates on (2xK) matrix which multiplies linearly normals
+        # to compute M⁻¹∮ n.(u-u*)lⁱ
         Emat = zeros(Np, 2)
         Emat[1, 1] = 1.
         Emat[Np, 2] = 1.
@@ -38,13 +50,19 @@ struct Advec1D
 end
 
 
+"""
+compute the right hand side of the advection problem
+```math
+\\frac{du_h^k}{dt} = -a \\mathcal{D}_r u^_h^k-(\\mathcal{M}^k)^{-1} + ...
+```
+"""
 function rhs1D(ad::Advec1D, u::Array{Float64,2}, t::Float64, a::Float64, α::Float64)
     mapI = 1
     mapO = ad.K * 2
     vmapI = 1
     vmapO = ad.K * ad.Np
 
-    # compute differential of u
+    # compute the numerical flux using jumps
     du = zeros(2, ad.K)
     du[:] = (u[ad.vmapM] - u[ad.vmapP]) .* (a * ad.nx[:] - (1 - α) * abs.(a .* ad.nx[:])) ./ 2.
 
