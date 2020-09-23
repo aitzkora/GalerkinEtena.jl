@@ -1,5 +1,5 @@
 using GalerkinEtena
-Np = 6
+Np = 7
 K = 10
 pb = Maxwell1D(-2.0, 2.0, K, Np)
 f = (x,t) -> rhs1D(pb, x, t)

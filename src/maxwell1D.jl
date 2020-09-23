@@ -14,6 +14,7 @@ struct Maxwell1D
     vmapM::Array{Int64,1}
     vmapP::Array{Int64,1}
     vmapB::Array{Int64,1}
+    mapB::Array{Int64,1}
     nx::Array{Float64,2}
     rx::Array{Float64,2}
     𝓓ᵣ::Array{Float64,2}
@@ -29,6 +30,7 @@ struct Maxwell1D
         ξ = JacobiGL(0., 0., Np - 1)
         nx = [-ones(1, K); ones(1, K)];
         x, vmapM, vmapP = DGDiscretization(m, ξ)
+        mapB  = findall( vmapM .== vmapP )
         vmapB = vmapM[ vmapM .== vmapP ]
         fmask = computeMask(ξ)
         # compute the metric and jacobian
@@ -52,7 +54,7 @@ struct Maxwell1D
         μ = ones(Np, 1) * μ₁ 
 
         # create the object
-        new(Np, K, m, ξ, x, vmapM, vmapP, vmapB, nx, rx, 𝓓ᵣ, fScale, lift, ε, μ)
+        new(Np, K, m, ξ, x, vmapM, vmapP, vmapB, mapB, nx, rx, 𝓓ᵣ, fScale, lift, ε, μ)
     end
 end
 
@@ -61,17 +63,11 @@ end
 compute the right hand side of the maxwell equation u = [E, H]
 """
 function rhs1D(pb::Maxwell1D, u::Array{Float64,2}, t::Float64)
-    m_u_2 = convert(Int64, size(u, 1) / 2)
+    m_u_2 = convert(Int64, floor(size(u, 1) / 2))
     E = u[1:m_u_2,:]
     H = u[m_u_2+1:end,:]
-    println(size(H))
 
-    Zimp = √(pb.μ/pb.ε)
-
-    mapI = 1
-    mapO = pb.K * 2
-    vmapI = 1
-    vmapO = pb.K * pb.Np
+    Zimp = sqrt.(pb.μ ./pb.ε)
 
     dE = zeros(2, pb.K)
     dE[:] = E[pb.vmapM] - E[pb.vmapP]
@@ -93,18 +89,18 @@ function rhs1D(pb::Maxwell1D, u::Array{Float64,2}, t::Float64)
 
     # Homogenenous Boundary Conditions Ez=0
 
-    Ebc = -E[vmapB] 
-    dE[mapB] = E[vmapB] - Ebc
-    Hbc = H[vmapB]
-    dH[mapB] = H[vmapB] - Hbc
+    Ebc = -E[pb.vmapB] 
+    dE[pb.mapB] = E[pb.vmapB] - Ebc
+    Hbc = H[pb.vmapB]
+    dH[pb.mapB] = H[pb.vmapB] - Hbc
 
     # evaluate upwind fluxes 
     fluxE = 1. ./ (Zimpm + Zimpp ) .* (pb.nx .* Zimpp .* dH - dE)
     fluxH = 1. ./ (Yimpm + Yimpp ) .* (pb.nx .* Yimpp .* dE - dH)
 
     # compute right hand sides of the PDE's 
-    rhsE = (-pb.rx .* (pb.𝓓ᵣ*H) + pb.lift * (pb.Fscale .* fluxE)) ./ pb.ε
-    rhsH = (-pb.rx .* (pb.𝓓ᵣ*E) + pb.lift * (pb.Fscale .* fluxH)) ./ pb.μ
+    rhsE = (-pb.rx .* (pb.𝓓ᵣ*H) + pb.lift * (pb.fScale .* fluxE)) ./ pb.ε
+    rhsH = (-pb.rx .* (pb.𝓓ᵣ*E) + pb.lift * (pb.fScale .* fluxH)) ./ pb.μ
     
     rhs = [ rhsE; rhsH ]
     return rhs
