@@ -13,9 +13,13 @@ struct QuadratureFormula
     weights::Array{Float64}
 end
 
+#1D and general funcs 
 export vander, JacobiGQ, JacobiGL, integrate, JacobiP, lagrange,
        Legendre, computeElementaryMatrices, Mesh1D, genGrid, connect1D,
-       computeMask, rk4, Advec1D, rhs1D, DGDiscretization, Maxwell1D, rsToAb, WarpFactor, xyToRs
+       computeMask, rk4, Advec1D, rhs1D, DGDiscretization, Maxwell1D
+
+# 2D funcs
+export rsToAb, WarpFactor, xyToRs, nodes2D
 
 include("mesh.jl")
 include("integrate.jl")

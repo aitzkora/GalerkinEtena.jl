@@ -207,4 +207,59 @@ return  -λ2 + λ3 - λ1, -λ2 - λ3 + λ1
 
 end
 
+"""
+nodes2D(N::Int64)
+computes the interpolation nodes (x,y) nodes in equilateral triangle for polynomial of order N             
+"""
+function nodes2D(N::Int64)
 
+    α_opt = [0.0000, 0.0000, 1.4152, 0.1001, 0.2751, 0.9800, 1.0999, 
+             1.2832, 1.3648, 1.4773, 1.4959, 1.5743, 1.5770, 1.6223, 1.6258]
+    # Set optimized parameter, α depending on order N 
+    if (N<16) 
+        α = α_opt[N]
+    else 
+        α = 5/3.
+    end
+
+    # total number of nodes
+    Np = (N+1)*(N+2)÷2
+
+    # Create equidistributed nodes on equilateral triangle
+    λ1 = zeros(Np) 
+    λ2 = zeros(Np) 
+    λ3 = zeros(Np)
+
+    sk = 1
+    for n=1:N+1
+        for m=1:N+2-n
+            λ1[sk] = (n-1)/N 
+            λ3[sk] = (m-1)/N
+            sk = sk+1;
+        end
+    end
+
+    λ2 = 1.0 .-λ1 .-λ3;
+    x = -λ2+λ3; y = (-λ2-λ3+2*λ1)/sqrt(3.0)
+
+    # Compute blending function at each node for each edge
+    blend1 = 4λ2.* λ3
+    blend2 = 4λ1.* λ3
+    blend3 = 4λ1.* λ2
+
+    # Amount of warp for each node, for each edge
+    warpf1 = WarpFactor(N, λ3 - λ2) 
+    warpf2 = WarpFactor(N, λ1 - λ3) 
+    warpf3 = WarpFactor(N, λ2 - λ1)
+
+    # Combine blend & warp
+    warp1 = blend1.*warpf1.*(1. .+ (α * λ1).^2)
+    warp2 = blend2.*warpf2.*(1. .+ (α * λ2).^2)
+    warp3 = blend3.*warpf3.*(1. .+ (α * λ3).^2)
+
+    # Accumulate deformations associated with each edge
+    x = x + 1*warp1 + cos(2*π/3)*warp2 + cos(4*π/3)*warp3
+    y = y + 0*warp1 + sin(2*π/3)*warp2 + sin(4*π/3)*warp3
+    
+    return x,y
+end
