@@ -7,7 +7,7 @@ q10=JacobiGQ(0.,0.,10)
 𝓜  = inv(𝓥*𝓥')
 x=q10.points
 ϕₖ=lagrange(ξ)
-ϕ=(i,x)->vander(x,Np)'*ϕₖ[i,:]
+ϕ=(i,x)->(x'.^(0:Np-1))'*ϕₖ[i,:]
 res=hcat([[sum(ϕ(i,x).*ϕ(j,x).*q10.weights) for i=1:Np] for j=1:Np]...)
 println("|𝓜 -res| = ", norm(𝓜 -res))
 r = [0.65]

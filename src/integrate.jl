@@ -45,40 +45,14 @@ function JacobiGL(α::Float64, β::Float64, N::Int)
     x = [-1; gq.points; 1]
 end
 
+"""
+JacobiP(x::Array{Float64,1},α::Float64,β::Float64,N::Int)
 
-"""
-vander(x, n)
-computes the Vandermonde matrix V(x₁, x₂, ... , xₚ) defined by
-```math
-V_{ij} = [x_j^{i-1}]_{ij} \\, \\forall \\, i=1,\\cdots,p \\, j = 1,\\cdots,\\n
-```
-optional argument n enable us to choose the number of rows
-"""
-function vander(x::Array{Float64}, n = size(x,1))
-    return x'.^(0:n-1)
-end
-let v_check = [ 1 1 1; 0.5 0.3 0.4; 0.25 0.09 0.16 ]
-    @test vander([0.5, 0.3, 0.4]) ≈ v_check atol=1e-12
-end
-
-"""
-GLT(N)
-computes the Gauß-Lobatto-Чебышёв points defined by
-```math
-T_k = -\\cos \\left( \\frac{k-1}{n-1}\\pi \\right)
-```
-"""
-function GLT(n::Int)
-    return -cos.((0:n-1)*π/(n-1))
-end
-
-"""
-JacobiP
-evaluate the Jacobi polynomial of type (α,β) > -1 (α+β ≢ -1) at points x for order N 
+evaluates the Jacobi polynomial of type (α,β) > -1 (α+β ≢ -1) at points x for order N 
 Note : the Jacobi polynomial is normalize by a factor γₙ = √(2/(2n+1))
-taken from nodal-dg matlab code [https://github.com/tcew/nodal-dg]
+adapted from nodal-dg matlab code [https://github.com/tcew/nodal-dg]
 """
-function JacobiP(x::Array{Float64},α::Float64,β::Float64,N::Int)
+function JacobiP(x::Array{Float64,1},α::Float64,β::Float64,N::Int)
 xp = copy(x)
 # Turn points into row if needed.
 PL = zeros(N+1,size(xp,1))
@@ -140,6 +114,8 @@ function Legendre(x::Array{Float64}, n::Int)
     end
     return P./ .√γ,P¹ ./ .√γ
 end
+
+
 """
 lagrange(α::Array{Float64})
 computes the n² coefficients of the lagrange basis polynomial
@@ -170,3 +146,65 @@ function lagrange(α::Array{Float64})
     end
     return w
 end
+
+# 2D functions
+
+"""
+rsToAb(r::Array{Float64,1}, s::Array{Float64,1})
+changes (r,s) coordinates to (a,b) coordinates
+"""
+function rsToAb(r::Array{Float64, 1}, s::Array{Float64, 1})
+    a = 2 * (1. .+ r) ./ (1 .- s ) .- 1.
+    b = copy(s)
+    a[s.==1.] .= -1.
+    return a, b
+end
+
+function Vander2D(N::Int64, r::Array{Float64,1}, s::Array{Float64,1})
+  a,b = rstoab(r,s)
+  hcat([√2 * JacobiP(a,0.,0.,i) .* JacobiP(b, 0., 2*i+1., j) .* (1 .- b).^i 
+        for i=0:N for j=0:N-i]...)
+end
+"""
+WarpFactor(N::Int64, rout::Array{Float64,1})
+compute the warping function as defined p. 177 in Warburton-Hesthaven
+"""
+function WarpFactor(N::Int64, rout::Array{Float64,1})
+
+# Compute LGL and equidistant node distribution
+LGLr = JacobiGL(0.,0.,N)
+req  = LinRange(-1.,1.,N+1)
+
+# Compute V based on req
+𝓥 = hcat([JacobiP([req;],0.,0.,i) for i=0:N]...) # TODO : check if we can use legendre here
+
+# Evaluate Lagrange polynomial at rout
+Pmat = hcat([JacobiP(rout,0.,0.,i) for i=0:N]...)
+Lmat = 𝓥'\Pmat'
+
+# Compute warp factor
+warp = Lmat'*(LGLr - req)
+
+# Scale factor
+zerof = (abs.(rout) .< (1.0-1.e-10))
+sf = 1.0 .- (zerof.*rout).^2
+warp = warp./sf + warp.*(zerof.-1.)
+
+end
+
+""" 
+function xyToRs(x::Array{Float64,1}, y::Array{Float64,1})
+convert (x,y) coords in equilateral triangle to (r,s) coordinates 
+standard triangle I = [(-1,-1), (1,-1), (-1,1)]
+"""
+function xyToRs(x::Array{Float64,1}, y::Array{Float64,1})
+
+λ1 = (sqrt(3.0)*y+1.0)/3.0
+λ2 = (-3.0*x - sqrt(3.0)*y + 2.0)/6.0
+λ3 = ( 3.0*x - sqrt(3.0)*y + 2.0)/6.0
+
+return  -λ2 + λ3 - λ1, -λ2 - λ3 + λ1
+
+end
+
+
