@@ -14,7 +14,7 @@ struct QuadratureFormula
 end
 
 #1D and general funcs 
-export vander, JacobiGQ, JacobiGL, integrate, JacobiP, lagrange,
+export JacobiGQ, JacobiGL, integrate, JacobiP,
        Legendre, computeElementaryMatrices, Mesh1D, genGrid, connect1D,
        computeMask, rk4, Advec1D, rhs1D, DGDiscretization, Maxwell1D
 

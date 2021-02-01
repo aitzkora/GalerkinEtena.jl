@@ -65,7 +65,7 @@ if (N==0)
     return PL[N+1,:]
 end
 γ1 = (α+1)*(β+1)/(α+β+3)*γ0;
-PL[2,:] = ((α+β+2)*xp/2 .+ (α-β)/2)/√γ1;
+PL[2,:] = ((α+β+2)*xp/2 .+ (α-β)/2)/√γ1; # todo : @view or @inbounds ??
 if (N==1)
   return PL[N+1,:]
 end
@@ -83,7 +83,6 @@ for i=1:N-1
 end
 P = PL[N+1,:]
 end
-
 
 """
 Legendre(x::Array{Float64}, n::Int) computes the matrices
@@ -115,37 +114,6 @@ function Legendre(x::Array{Float64}, n::Int)
     return P./ .√γ,P¹ ./ .√γ
 end
 
-
-"""
-lagrange(α::Array{Float64})
-computes the n² coefficients of the lagrange basis polynomial
-taken from  Accuracy and Stability of Numerical Algorithms by Nicholas Higham p. 417
-"""
-
-function lagrange(α::Array{Float64})
-    n = size(α,1)
-    a = zeros(n+1)
-    w = zeros(n,n)
-    a[1] = -α[1]
-    a[2] = 1
-    for k=2:n
-        a[k+1] = 1
-        for j=k:-1:2
-            a[j] = a[j-1] - α[k]*a[j]
-        end
-        a[1] = -α[k] * a[1]
-    end
-    for i = 1:n
-        w[i,n] = 1
-        s = 1
-        for j=n-1:-1:1
-            w[i,j]  = a[j+1] + α[i] * w[i, j+1]
-            s = α[i]*s .+ w[i,j]
-        end
-        w[i, :] = w[i, :]/s
-    end
-    return w
-end
 
 # 2D functions
 
@@ -199,9 +167,9 @@ standard triangle I = [(-1,-1), (1,-1), (-1,1)]
 """
 function xyToRs(x::Array{Float64,1}, y::Array{Float64,1})
 
-λ1 = (sqrt(3.0)*y+1.0)/3.0
-λ2 = (-3.0*x - sqrt(3.0)*y + 2.0)/6.0
-λ3 = ( 3.0*x - sqrt(3.0)*y + 2.0)/6.0
+λ1 = (      √3y .+ 1)/3
+λ2 = (-3x - √3y .+ 2)/6
+λ3 = ( 3x - √3y .+ 2)/6
 
 return  -λ2 + λ3 - λ1, -λ2 - λ3 + λ1
 
@@ -239,8 +207,9 @@ function nodes2D(N::Int64)
         end
     end
 
-    λ2 = 1.0 .-λ1 .-λ3;
-    x = -λ2+λ3; y = (-λ2-λ3+2*λ1)/sqrt(3.0)
+    λ2 = 1.0 .-λ1 .-λ3
+    x = -λ2 + λ3
+    y = (-λ2 -λ3 +2λ1)/sqrt(3.0)
 
     # Compute blending function at each node for each edge
     blend1 = 4λ2.* λ3
