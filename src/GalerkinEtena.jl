@@ -19,7 +19,7 @@ export JacobiGQ, JacobiGL, integrate, JacobiP,
        computeMask, rk4, Advec1D, rhs1D, DGDiscretization, Maxwell1D
 
 # 2D funcs
-export rsToAb, WarpFactor, xyToRs, nodes2D, computeElementaryMatrices2D
+export rsToAb, WarpFactor, xyToRs, nodes2D, computeElementaryMatrices2D, 𝓔
 
 include("mesh.jl")
 include("integrate.jl")

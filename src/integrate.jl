@@ -85,7 +85,7 @@ P = PL[N+1,:]
 end
 
 """
-Legendre(x::Array{Float64}, n::Int) computes the matrices
+Legendre(n::Int64, x::Array{Float64}, derive::Bool=true) computes the matrices
 ```math
 P_{ij} = P^j(x_i)
 ```
@@ -99,19 +99,27 @@ P^n(x) = \\frac{1}{2^nn!}\\frac{d^n}{dx^n}\\left((x^2-1)^n\\right)
 ```
 Note 
 """
-function Legendre(x::Array{Float64}, n::Int)
-    γ = 2 ./(2(0:n).+1.)'
-    P = zeros(size(x, 1), n + 1)
-    P¹ = zeros(size(x, 1), n + 1)
-    P[:, 1] = ones(size(x))
-    P[:, 2] = x
+function Legendre(n::Int64, x::Array{Float64,1}, derive::Bool=true)
+  γ = 2 ./(2(0:n).+1.)'
+  P = zeros(size(x, 1), n + 1)
+  P¹ = zeros(size(x, 1), n + 1)
+  P[:, 1] = ones(size(x))
+  P[:, 2] = x
+  if (derive)
     P¹[:, 1] = zeros(size(x))
     P¹[:, 2] = ones(size(x))
-    for i=3:n+1
-        P[:, i] = (2*i-3.)/(i-1) .* x .* P[:,i-1] - (i-2.)/(i-1) .* P[:, i - 2]
-        P¹[:, i] = (2*i-3.)/(i-1) .* (P[:,i-1] + x .* P¹[:, i - 1]) - (i-2.)/(i-1) .* P¹[:, i - 2]
+  end
+  for i=3:n+1
+    P[:, i] = (2*i-3.)/(i-1) .* x .* P[:,i-1] - (i-2.)/(i-1) .* P[:, i - 2]
+    if (derive)
+      P¹[:, i] = (2*i-3.)/(i-1) .* (P[:,i-1] + x .* P¹[:, i - 1]) - (i-2.)/(i-1) .* P¹[:, i - 2]
     end
+  end
+  if (derive)
     return P./ .√γ,P¹ ./ .√γ
+  else
+    return P./ .√γ 
+  end
 end
 
 
@@ -127,6 +135,15 @@ function rsToAb(r::Array{Float64, 1}, s::Array{Float64, 1})
     a[s.==1.] .= -1.
     return a, b
 end
+
+
+"""
+npToN(np::Int64)
+"""
+function npToN(np::Int64)
+  convert(Int64,(√(1+8np)-3)/2)
+end
+
 
 function Vander2D(N::Int64, r::Array{Float64,1}, s::Array{Float64,1})
   a,b = rstoab(r,s)
@@ -231,4 +248,33 @@ function nodes2D(N::Int64)
     y = y + 0*warp1 + sin(2*π/3)*warp2 + sin(4*π/3)*warp3
     
     return x,y
+end
+
+
+"""
+computes flux integral 
+"""
+function 𝓔(fMask::Array{Int64,2}, r::Array{Float64, 1}, s::Array{Float64, 1})
+
+  nFaces = 3
+  np = length(r)
+  n = npToN(np)
+  nfp = size(fMask, 1) # number of points on a edge
+  eMat = zeros(np, nFaces * nfp)
+
+  for i=1:nFaces-1
+    faceR = r[fMask[:,1]]
+    𝓥 = Legendre(n, faceR, false) 
+    mEdge = inv(𝓥 * 𝓥')
+    eMat[fMask[:,i], 1+(i-1)*nfp:i*nfp] = mEdge
+  end
+
+  i = 3 
+  faceS = s[fMask[:,3]]
+  𝓥 = Legendre(n, faceS, false) 
+  mEdge = inv(𝓥 * 𝓥')
+  eMat[fMask[:,i], 1+(i-1)*nfp:i*nfp] = mEdge
+
+  return eMat
+
 end

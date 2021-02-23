@@ -3,7 +3,7 @@ computeElementaryMatrices(ξ::Array{Float64,1}, Np::Int)
 computes the elementary matrices  𝓥, 𝓓ᵣ on the Gauß-Lobatto grid on [-1,1]
 """
 function computeElementaryMatrices(ξ::Array{Float64,1},N::Int)
-    𝓥, 𝓥ᵣ = Legendre(ξ, N)
+    𝓥, 𝓥ᵣ = Legendre(N, ξ)
     𝓓ᵣ = 𝓥ᵣ / 𝓥
     return 𝓥, 𝓓ᵣ
 end
