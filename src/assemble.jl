@@ -1,21 +1,39 @@
 """
-computeElementaryMatrices(ξ::Array{Float64,1}, Np::Int)
+type for discretisation in r,s,t coordinates
+"""
+struct RefGrid{D}
+  dim::Int64
+  N::Int64
+  Np::Int64 
+  Nfp::Int64
+  NFaces::Int64
+  r::Array{Float64,2}
+  function RefGrid{D}(N::Int64, Np::Int64, Nfp::Int64, NFaces::Int64, r::Array{Float64,2}) where {D}
+    @assert Val(D) isa Union{map(x->Val{x},1:3)...}
+    new{D}(D, N, Np, Nfp, NFaces, r)
+  end
+end
+
+
+"""
+computeElementaryMatrices(ξ::RefGrid{D})
 computes the elementary matrices  𝓥, 𝓓ᵣ on the Gauß-Lobatto grid on [-1,1]
 """
-function computeElementaryMatrices(ξ::Array{Float64,1},N::Int)
-    𝓥, 𝓥ᵣ = Legendre(N, ξ)
+function computeElementaryMatrices(ξ::RefGrid{1})
+    𝓥, 𝓥ᵣ = Legendre(ξ.N, ξ.r)
     𝓓ᵣ = 𝓥ᵣ / 𝓥
     return 𝓥, 𝓓ᵣ
 end
 
 """
-genGrid(m::Mesh1D, ξ::Array{Float64})
+genGrid(m::Mesh1D, ξ::RefGrid{1})
 generate a (#ξ,K) matrix corresponding to all degree of freedom points :
 ```math
 G_{ij} = x^k_i \\in D^k
 ```
 """
-function genGrid(m::Mesh1D, ξ::Array{Float64})
+
+function genGrid(m::SimplexMesh{1}, ξ::RefGrid{1})
     np = size(ξ, 1)
     va = (x->x[1]).(m.cells)
     vb = (x->x[2]).(m.cells)
@@ -24,30 +42,30 @@ function genGrid(m::Mesh1D, ξ::Array{Float64})
 end
 
 """
-computeMask(ξ::Array{Float64,1})
+computeMask(ξ::RefGrid{1})
 retrieves the index of the boundary nodes on the reference element
 """
-function computeMask(ξ::Array{Float64,1})
+function computeMask(ξ::RefGrid{1})
     nodePrecision = 1e-12
-    m1 = findall(abs.(ξ .+ 1) .< nodePrecision)
-    m2 = findall(abs.(ξ .- 1) .< nodePrecision)
+    m1 = findall(abs.(ξ.r .+ 1) .< nodePrecision)
+    m2 = findall(abs.(ξ.r .- 1) .< nodePrecision)
     return [m1; m2]
 end
 
 
 """
-e2e, e2f = connect1D(m::Mesh1D)
+e2e, e2f = connect(m::SimplexMesh{1})
 
 constructs the Element to Element (e2e) and Element to Face (e2f) matrices :
 e2eᵢⱼ = k ⇔ element i is connected to k trough its j face if k ≠ i
 e2fᵢⱼ = l ⇔ element i is connected to k trough its j face corresponding to l face in element k
 """
 
-function connect1D(m::Mesh1D)
-    K = length(m.cells)
-    Nfaces = length(m.cells[1]) # assume nb_faces = cst here 2
+function connect(m::SimplexMesh{1})
+    K = size(m.cells, 1)
+    Nfaces = size(m.cells, 2)
     Ntot = Nfaces * K
-    F2V = sparse(collect(1:Ntot), vcat(m.cells...), ones(Int8, Ntot) )
+    F2V = sparse(collect(1:Ntot), vcat(m.cells'[:]), ones(Int8, Ntot) )
     F2F = F2V*F2V' - spdiagm(0=>ones(Int8,Ntot)) # if Fᵢⱼ = 1, global face i is connected to global face j
     faces = findnz(F2F)
     # convert face global indices to (element,face) ordering
@@ -75,10 +93,10 @@ vmapP and vmapP is a vector of size 2*K, if we reshape into a (2,K), matrix, the
 [vmapP[1, i], vmapP[2, i]] are the indices of external vertices of the i element
 
 """
-function DGDiscretization(m::Mesh1D, ξ::Array{Float64})
-    Np = length(ξ)
-    K = length(m.cells)
-    Nfaces = length(m.cells[1])
+function DGDiscretization(m::SimplexMesh{1}, ξ::RefGrid{1})
+    Np = ξ.Np
+    K = size(m.cells, 1)
+    Nfaces = size(m.cells[1], 2)
     nodeIds = reshape(1:K*Np, Np, K)
 
     fmask = computeMask(ξ)
@@ -86,7 +104,7 @@ function DGDiscretization(m::Mesh1D, ξ::Array{Float64})
 
     vmapP = zeros(Int64, Nfaces, K)
 
-    e2e, e2f = connect1D(m)
+    e2e, e2f = connect(m)
 
     x = genGrid(m, ξ )
 
