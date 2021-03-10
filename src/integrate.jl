@@ -3,7 +3,7 @@ JacobiGQ(α::Float64,β::Float64,N::Int)
 
 return the N'th Gauß quadrature points
 """
-function JacobiGQ(α::Float64,β::Float64,N::Int)
+function JacobiGQ(α::Float64, β::Float64, N::Int)
     if (N == 0)
         return QuadratureFormula(-(α-β)/(α+β+2.), 2.)
     end
@@ -130,6 +130,7 @@ rsToAb(r::Array{Float64,1}, s::Array{Float64,1})
 changes (r,s) coordinates to (a,b) coordinates
 """
 function rsToAb(r::Array{Float64, 1}, s::Array{Float64, 1})
+    
     a = 2 * (1. .+ r) ./ (1 .- s ) .- 1.
     b = copy(s)
     a[s.==1.] .= -1.

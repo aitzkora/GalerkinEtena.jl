@@ -8,7 +8,7 @@ structure for modelizing the 1D Maxwell's equation
 struct Maxwell1D
     Np::Int64
     K::Int64
-    m::Mesh1D
+    m::SimplexMesh{1}
     ξ::Array{Float64,1}
     x::Array{Float64,2}
     vmapM::Array{Int64,1}
