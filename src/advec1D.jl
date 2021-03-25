@@ -1,7 +1,8 @@
 """
 structure for modelizing the 1D advection equation
+
 ```math
-\\frac{\\partialu}{\\partial t} + a \\frac{\\partial}{\\partial x} = 0
+\\frac{\\partial u}{\\partial t} + a \\frac{\\partial u}{\\partial x} = 0
 ```
 with
 ```math
@@ -51,10 +52,9 @@ end
 
 
 """
-compute the right hand side of the advection problem
-```math
-\\frac{du_h^k}{dt} = -a \\mathcal{D}_r u^_h^k-(\\mathcal{M}^k)^{-1} + ...
-```
+    rhs1D(ad::Advec1D, u::Array{Float64,2}, t::Float64, a::Float64, α::Float64)
+
+computes the right hand side of the advection problem
 """
 function rhs1D(ad::Advec1D, u::Array{Float64,2}, t::Float64, a::Float64, α::Float64)
     mapI = 1

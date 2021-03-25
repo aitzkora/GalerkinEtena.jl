@@ -1,8 +1,8 @@
 """
 structure for modelizing the 1D Maxwell's equation
 ```math
-\\varepsilon(x)\\frac{\\partialE}{\\partial t}  = - \\frac{\\partialH}{\\partial x}  \\mbox{ and }
-\\mu(x)\\frac{\\partialH}{\\partial t}  = - \\frac{\\partialE}{\\partial x} 
+\\varepsilon(x)\\frac{\\partial E}{\\partial t}  = - \\frac{\\partial H}{\\partial x}  \\mbox{ and }
+\\mu(x)\\frac{\\partial H}{\\partial t}  = - \\frac{\\partial E}{\\partial x} 
 ```
 """
 struct Maxwell1D
@@ -60,7 +60,9 @@ end
 
 
 """
-compute the right hand side of the maxwell equation u = [E, H]
+    compute trhs1D(pb::Maxwell1D, u::Array{Float64,2}, t::Float64)
+
+compute the right hand side of the maxwell equation with  `u = [E, H]`
 """
 function rhs1D(pb::Maxwell1D, u::Array{Float64,2}, t::Float64)
     m_u_2 = convert(Int64, floor(size(u, 1) / 2))
@@ -105,4 +107,3 @@ function rhs1D(pb::Maxwell1D, u::Array{Float64,2}, t::Float64)
     rhs = [ rhsE; rhsH ]
     return rhs
 end
-
