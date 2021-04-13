@@ -6,8 +6,6 @@ structure for modelizing the 1D Maxwell's equation
 ```
 """
 struct Maxwell1D
-    Np::Int64
-    K::Int64
     m::SimplexMesh{1}
     ξ::Array{Float64,1}
     x::Array{Float64,2}
@@ -23,28 +21,21 @@ struct Maxwell1D
     ε::Array{Float64,2}
     μ::Array{Float64,2}
 
-    function Maxwell1D(xMin::Float64, xMax::Float64, K::Int64, Np::Int64)
-        K = K
-        Np = Np
-        m = Mesh1D(xMin, xMax,  K)
-        ξ = JacobiGL(0., 0., Np - 1)
-        nx = [-ones(1, K); ones(1, K)];
-        x, vmapM, vmapP = DGDiscretization(m, ξ)
+    function Maxwell1D(m::SimplexMesh{1}, ξ::RefGrid{1})
+        nx = normals(m)
+        x, vmapM, vmapP = Discretize(m, ξ)
+
         mapB  = findall( vmapM .== vmapP )
         vmapB = vmapM[ vmapM .== vmapP ]
-        fmask = computeMask(ξ)
-        # compute the metric and jacobian
-        𝓥, 𝓓ᵣ = computeElementaryMatrices(ξ, Np - 1)
+
+        fmask = mask(ξ)
+
+        𝓥, 𝓓ᵣ = elementaryMatrices(ξ)
         J = 𝓓ᵣ * x
         rx = 1. ./ J
         fScale = 1. ./ J[fmask, :]
 
-        # compute the lift this matrix operates on (2xK) matrix which multiplies linearly normals
-        # to compute M⁻¹∮ n.(u-u*)lⁱ
-        Emat = zeros(Np, 2)
-        Emat[1, 1] = 1.
-        Emat[Np, 2] = 1.
-        lift = 𝓥 * 𝓥' * Emat
+        lift = 𝓥 * 𝓥' * 𝓔(fmask, ξ)
        
         K_2 = convert(Int64, K / 2)
         ε₁ = [ ones(1, K_2) 2*ones(1, K_2) ]
@@ -54,7 +45,7 @@ struct Maxwell1D
         μ = ones(Np, 1) * μ₁ 
 
         # create the object
-        new(Np, K, m, ξ, x, vmapM, vmapP, vmapB, mapB, nx, rx, 𝓓ᵣ, fScale, lift, ε, μ)
+        new(m, ξ, x, vmapM, vmapP, vmapB, mapB, nx, rx, 𝓓ᵣ, fScale, lift, ε, μ)
     end
 end
 

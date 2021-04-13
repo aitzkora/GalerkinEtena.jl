@@ -3,16 +3,20 @@ using GalerkinEtena
 
 makedocs(
     sitename = "GalerkinEtena",
-    format = Documenter.HTML(),
+    authors = "Fuentes Marc",
+    format = Documenter.HTML(
+        prettyurls = get(ENV, "CI", nothing) == "true",
+        mathengine = MathJax(Dict(
+            :TeX => Dict(
+                :equationNumbers => Dict(:autoNumber => "AMS"),
+                :Macros => Dict()
+                )
+              ))
+         ),
     modules = [GalerkinEtena],
-    doctest=false,
     pages = ["Documentation" => "index.md"]
-)
+        )
 
-# Documenter can also automatically deploy documentation to gh-pages.
-# See "Hosting Documentation" and deploydocs() in the Documenter manual
-# for more information.
 deploydocs(
-    deps = Deps.pip("mkdocs", "python-markdown-math"),
     repo = "github.com/aitzkora/GalerkinEtena.jl.git"
-)
+    )
