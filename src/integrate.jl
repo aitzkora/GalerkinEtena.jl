@@ -1,3 +1,9 @@
+struct QuadratureFormula
+  points::Array{Float64}
+  weights::Array{Float64}
+end
+
+
 """
 JacobiGQ(α::Float64,β::Float64,N::Int)
 
@@ -34,7 +40,7 @@ end
 """
 JacobiGL(α::Float64, β::Float64, N::Int)
 
-Compute the N'th order Gauß Lobatto quadrature formula points
+computes the N'th order Gauß Lobatto quadrature formula points
 """
 function JacobiGL(α::Float64, β::Float64, N::Int)
     x = zeros(N + 1, 1)
@@ -46,13 +52,14 @@ function JacobiGL(α::Float64, β::Float64, N::Int)
 end
 
 """
-JacobiP(x::Array{Float64,1},α::Float64,β::Float64,N::Int)
+    JacobiP(x::Array{Float64,1}, α::Float64, β::Float64, N::Int)
 
-evaluates the Jacobi polynomial of type (α,β) > -1 (α+β ≢ -1) at points x for order N 
-Note : the Jacobi polynomial is normalize by a factor γₙ = √(2/(2n+1))
-adapted from nodal-dg matlab code [https://github.com/tcew/nodal-dg]
+evaluates the Jacobi polynomial of type (α,β) > -1 (α+β ≢ -1) at points `x` for order `N` 
+
+Note : the Jacobi polynomial is normalize by a factor ``γₙ = \\sqrt{\\frac{2}{2n+1}}``
+adapted from [nodal-dg] (https://github.com/tcew/nodal-dg)
 """
-function JacobiP(x::Array{Float64,1},α::Float64,β::Float64,N::Int)
+function JacobiP(x::Array{Float64,1}, α::Float64, β::Float64, N::Int)
 xp = copy(x)
 # Turn points into row if needed.
 PL = zeros(N+1,size(xp,1))
@@ -85,19 +92,16 @@ P = PL[N+1,:]
 end
 
 """
-Legendre(n::Int64, x::Array{Float64}, derive::Bool=true) computes the matrices
+    Legendre(n::Int64, x::Array{Float64}, derive::Bool=true) 
+
+computes the two matrices (if derive si true, otherwise just `P`)
 ```math
-P_{ij} = P^j(x_i)
-```
-and 
-```math
-P'_{ij} = \\frac{dP^j}{dx}(x_i)
+P_{ij} = P^j(x_i) \\qquad and \\qquad  P'_{ij} = \\frac{dP^j}{dx}(x_i)
 ```
 where
 ```math
 P^n(x) = \\frac{1}{2^nn!}\\frac{d^n}{dx^n}\\left((x^2-1)^n\\right)
 ```
-Note 
 """
 function Legendre(n::Int64, x::Array{Float64,1}, derive::Bool=true)
   γ = 2 ./(2(0:n).+1.)'
@@ -251,6 +255,17 @@ function nodes2D(N::Int64)
     return x,y
 end
 
+"""
+ compute the lift this matrix operates on (2xK) matrix which multiplies linearly normals
+ to compute M⁻¹∮ n.(u-u*)lⁱ
+"""
+
+function 𝓔(fMask::Array{Int64,2}, ξ::RefGrid{1})
+  Emat = zeros(ξ.Np, 2)
+  Emat[1, 1] = 1.
+  Emat[ξ.Np, 2] = 1.
+  return Emat 
+end
 
 """
 computes flux integral 
