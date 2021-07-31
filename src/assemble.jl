@@ -41,7 +41,11 @@ function vFace(m::SimplexMesh{1})
 end
 
 function vFace(m::SimplexMesh{2})
-  return [1 2; 2 3; 1 3]
+  return [1 2; 2 3; 3 1]
+end
+
+function vFace(m::SimplexMesh{3})
+  return  [1,2,3; 1,2,4 ; 2,3,4 ; 1,3,4]
 end
 
 """
@@ -85,6 +89,29 @@ function connect(m::SimplexMesh{D}) where D
   E2F[ind] = [z[1] for z in f2]
   return  E2E, E2F
 end
+
+
+function tiConnect(m::SimplexMesh{D}) where D
+  Nfaces = D + 1
+  K = size(m.cells, 1)
+  fnodes =  generateFaces(m)
+end 
+
+
+function generateFaces(m::SimplexMesh{2})
+    [m.cells[:,[1,2]]; 
+     m.cells[:,[2,3]]; 
+     m.cells[:,[3,1]]]
+end
+
+function generateFaces(m::SimplexMesh{3})
+    [m.cells[:,[1,2,3]]; 
+     m.cells[:,[1,2,4]]; 
+     m.cells[:,[2,3,4]]; 
+     m.cells[:,[1,3,4]]];
+end
+
+
 
 """
 [x, vmapM, vmapP] =  DGDiscrete(m::SimplexMesh{1}, ξ::RefGrid{1})
