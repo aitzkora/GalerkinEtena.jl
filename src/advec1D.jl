@@ -22,13 +22,13 @@ struct Advec{D}
     fScale::Array{Float64,2}
     lift::Array{Float64,2}
 
-
+    # constructor
     function Advec{D}(m::SimplexMesh{D}, ξ::RefGrid{D}) where D
         nx = normals(m)
-        x, vmapM, vmapP = Discretize(m, ξ)
+        x, vmapM, vmapP = discretize(m, ξ)
         fmask = mask(ξ)
         # compute the metric and jacobian
-        𝓥, 𝓓ᵣ = computeElementaryMatrices(ξ)
+        𝓥, 𝓓ᵣ = elementaryMatrices(ξ)
         J = 𝓓ᵣ * x
         rx = 1. ./ J
         fScale = 1. ./ J[fmask, :]
@@ -39,26 +39,27 @@ struct Advec{D}
 end
 
 
-function advec1D(a, b, K, Np)
-  m = Mesh1D(a, b, K)
-  ξ = RefGrid
-  ad = Advec{1}
-
-    return ad
+function advec1D(a::Float64, b::Float64, K::Int64, Np::Int64)
+  m = Mesh1D(a, b, K) # maillage geometrique
+  N = Np - 1 # degre du polynome
+  ξ = refGrid1D(a, b, N)
+  return  Advec{1}(m, ξ)
 end
+
+
 """
     rhs1D(ad::Advec1D, u::Array{Float64,2}, t::Float64, a::Float64, α::Float64)
 
 computes the right hand side of the advection problem
 """
-function rhs(ad::Advec{1}, u::Array{Float64,2}, t::Float64, a::Float64, α::Float64)
+function rhs1D(ad::Advec{1}, u::Array{Float64,2}, t::Float64, a::Float64, α::Float64)
     mapI = 1
-    mapO = ad.ξ.K * 2
+    mapO = ad.m.K * 2
     vmapI = 1
-    vmapO = ad.ξ.K * ad.ξ.Np
+    vmapO = ad.m.K * ad.ξ.Np
 
     # compute the numerical flux using jumps
-    du = zeros(2, ad.ξ.K)
+    du = zeros(2, ad.m.K)
     du[:] = (u[ad.vmapM] - u[ad.vmapP]) .* (a * ad.nx[:] - (1 - α) * abs.(a .* ad.nx[:])) ./ 2.
 
     #impose boundary condition at x = 0

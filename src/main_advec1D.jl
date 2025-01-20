@@ -3,9 +3,9 @@ a = 2π
 α = 1.
 Np = 9
 K = 10
-ξ = RefGrid{1}(0., 2., Np)
-ad = Advec{1}(0., 2., K, Np)
-f = (x,t) -> rhs(ad, x, t, a, α)
+# construit un problème d'advection avec les bon paramètres
+ad = advec1D(0., 2., K, Np)
+f = (x,t) -> rhs1D(ad, x, t, a, α)
 u = sin.(ad.x)
 tFinal = 10.
 xₘᵢₙ = minimum(abs.(ad.x[1, :]- ad.x[2,:]))
