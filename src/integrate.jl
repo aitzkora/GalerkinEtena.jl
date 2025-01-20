@@ -94,7 +94,7 @@ end
 """
     Legendre(n::Int64, x::Array{Float64}, derive::Bool=true) 
 
-computes the two matrices (if derive si true, otherwise just `P`)
+computes the two matrices (if derive is true, otherwise just `P`)
 ```math
 P_{ij} = P^j(x_i) \\qquad and \\qquad  P'_{ij} = \\frac{dP^j}{dx}(x_i)
 ```
@@ -260,7 +260,7 @@ end
  to compute M⁻¹∮ n.(u-u*)lⁱ
 """
 
-function 𝓔(fMask::Array{Int64,2}, ξ::RefGrid{1})
+function 𝓔(fMask::Array{Int64,1}, ξ::RefGrid{1})
   Emat = zeros(ξ.Np, 2)
   Emat[1, 1] = 1.
   Emat[ξ.Np, 2] = 1.

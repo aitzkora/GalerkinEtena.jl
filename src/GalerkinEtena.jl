@@ -9,7 +9,8 @@ using SparseArrays
 #1D and general funcs 
 export JacobiGQ, JacobiGL, integrate, JacobiP, Legendre, 
        elementaryMatrices, SimplexMesh, RefGrid, Mesh1D, genGrid, connect,
-       mask, rk4, Advec1D, rhs1D, Discretize, Maxwell1D
+       mask, rk4, advec1D, rhs1D, discretize, Maxwell1D, vFace,
+       Advec, refGrid1D, RefGrid
 
 # 2D funcs
 export rsToAb, WarpFactor, xyToRs, nodes2D, computeElementaryMatrices2D, 𝓔

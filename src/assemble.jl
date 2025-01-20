@@ -3,8 +3,8 @@
 
 computes the elementary matrices `𝓥, 𝓓ᵣ` on the Gauß-Lobatto grid on `I₁ = [-1,1]`
 """
-function ElementaryMatrices(ξ::RefGrid{1})
-    𝓥, 𝓥ᵣ = Legendre(ξ.N, ξ.r)
+function elementaryMatrices(ξ::RefGrid{1})
+    𝓥, 𝓥ᵣ = Legendre(ξ.N, ξ.r[:,1])
     𝓓ᵣ = 𝓥ᵣ / 𝓥
     return 𝓥, 𝓓ᵣ
 end
@@ -45,7 +45,7 @@ function vFace(m::SimplexMesh{2})
 end
 
 function vFace(m::SimplexMesh{3})
-  return  [1,2,3; 1,2,4 ; 2,3,4 ; 1,3,4]
+  return  [1 2 3; 1 2 4 ; 2 3 4 ; 1 3 4]
 end
 
 """
@@ -98,23 +98,9 @@ function tiConnect(m::SimplexMesh{D}) where D
 end 
 
 
-function generateFaces(m::SimplexMesh{2})
-    [m.cells[:,[1,2]]; 
-     m.cells[:,[2,3]]; 
-     m.cells[:,[3,1]]]
-end
-
-function generateFaces(m::SimplexMesh{3})
-    [m.cells[:,[1,2,3]]; 
-     m.cells[:,[1,2,4]]; 
-     m.cells[:,[2,3,4]]; 
-     m.cells[:,[1,3,4]]];
-end
-
-
 
 """
-[x, vmapM, vmapP] =  DGDiscrete(m::SimplexMesh{1}, ξ::RefGrid{1})
+[x, vmapM, vmapP] =  discretize(m::SimplexMesh{1}, ξ::RefGrid{1})
 
 return a DG discretization along the mesh and the local discretization ξ
 x is of size (#ξ, K )
@@ -123,7 +109,7 @@ vmapP and vmapP is a vector of size 2*K, if we reshape into a (2,K), matrix, the
 [vmapP[1, i], vmapP[2, i]] are the indices of external vertices of the i element
 
 """
-function Discretize(m::SimplexMesh{1}, ξ::RefGrid{1})
+function discretize(m::SimplexMesh{1}, ξ::RefGrid{1})
     Np = ξ.Np
     K = size(m.cells, 1)
     @assert size(m.cells, 2) == ξ.NFaces

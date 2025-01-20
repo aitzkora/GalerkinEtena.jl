@@ -2,11 +2,13 @@ struct SimplexMesh{D}
   dim::Int64
   points::Array{Float64,2}
   cells::Array{Int64,2}
+  K::Int64
   function SimplexMesh{D}(points::Array{Float64,2}, cells::Array{Int64,2}) where {D}
     @assert Val(D) isa Union{map(x->Val{x},1:3)...}
     @assert D == size(points, 2)
     @assert D+1 == size(cells, 2)
-    new{D}(D, points, cells)
+    K = size(cells, 1)
+    new{D}(D, points, cells, K)
   end
 end
 
@@ -19,6 +21,5 @@ function Mesh1D(a::Float64, b::Float64, N::Int64)
 end
 
 function normals(m::SimplexMesh{1})
-  K = size(m.cells, 1)
-  nx = [-ones(1, K); ones(1, K)];
+  nx = [-ones(1, m.K); ones(1, m.K)];
 end
