@@ -20,7 +20,7 @@ include("mesh.jl")
 include("integrate.jl")
 include("assemble.jl")
 include("assemble2D.jl")
-#include("maxwell1D.jl")
+include("maxwell1D.jl")
 include("advec1D.jl")
 include("rk4.jl")
 

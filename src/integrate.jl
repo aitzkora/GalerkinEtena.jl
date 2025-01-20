@@ -52,14 +52,14 @@ function JacobiGL(α::Float64, β::Float64, N::Int)
 end
 
 """
-    JacobiP(x::Array{Float64,1}, α::Float64, β::Float64, N::Int)
+    JacobiP(x::Vector{Float64}, α::Float64, β::Float64, N::Int)
 
 evaluates the Jacobi polynomial of type (α,β) > -1 (α+β ≢ -1) at points `x` for order `N` 
 
 Note : the Jacobi polynomial is normalize by a factor ``γₙ = \\sqrt{\\frac{2}{2n+1}}``
 adapted from [nodal-dg] (https://github.com/tcew/nodal-dg)
 """
-function JacobiP(x::Array{Float64,1}, α::Float64, β::Float64, N::Int)
+function JacobiP(x::Vector{Float64}, α::Float64, β::Float64, N::Int)
 xp = copy(x)
 # Turn points into row if needed.
 PL = zeros(N+1,size(xp,1))
@@ -103,7 +103,7 @@ where
 P^n(x) = \\frac{1}{2^nn!}\\frac{d^n}{dx^n}\\left((x^2-1)^n\\right)
 ```
 """
-function Legendre(n::Int64, x::Array{Float64,1}, derive::Bool=true)
+function Legendre(n::Int64, x::Vector{Float64}, derive::Bool=true)
   γ = 2 ./(2(0:n).+1.)'
   P = zeros(size(x, 1), n + 1)
   P¹ = zeros(size(x, 1), n + 1)
@@ -130,11 +130,10 @@ end
 # 2D functions
 
 """
-rsToAb(r::Array{Float64,1}, s::Array{Float64,1})
+rsToAb(r::Vector{Float64}, s::Vector{Float64})
 changes (r,s) coordinates to (a,b) coordinates
 """
-function rsToAb(r::Array{Float64, 1}, s::Array{Float64, 1})
-    
+function rsToAb(r::Vector{Float64}, s::Vector{Float64})
     a = 2 * (1. .+ r) ./ (1 .- s ) .- 1.
     b = copy(s)
     a[s.==1.] .= -1.
@@ -150,16 +149,16 @@ function npToN(np::Int64)
 end
 
 
-function Vander2D(N::Int64, r::Array{Float64,1}, s::Array{Float64,1})
+function Vander2D(N::Int64, r::Vector{Float64}, s::Vector{Float64})
   a,b = rstoab(r,s)
   hcat([√2 * JacobiP(a,0.,0.,i) .* JacobiP(b, 0., 2*i+1., j) .* (1 .- b).^i 
         for i=0:N for j=0:N-i]...)
 end
 """
-WarpFactor(N::Int64, rout::Array{Float64,1})
+WarpFactor(N::Int64, rout::Vector{Float64})
 compute the warping function as defined p. 177 in Warburton-Hesthaven
 """
-function WarpFactor(N::Int64, rout::Array{Float64,1})
+function WarpFactor(N::Int64, rout::Vector{Float64})
 
 # Compute LGL and equidistant node distribution
 LGLr = JacobiGL(0.,0.,N)
@@ -183,11 +182,11 @@ warp = warp./sf + warp.*(zerof.-1.)
 end
 
 """ 
-function xyToRs(x::Array{Float64,1}, y::Array{Float64,1})
+function xyToRs(x::Vector{Float64}, y::Vector{Float64})
 convert (x,y) coords in equilateral triangle to (r,s) coordinates 
 standard triangle I = [(-1,-1), (1,-1), (-1,1)]
 """
-function xyToRs(x::Array{Float64,1}, y::Array{Float64,1})
+function xyToRs(x::Vector{Float64}, y::Vector{Float64})
 
 λ1 = (      √3y .+ 1)/3
 λ2 = (-3x - √3y .+ 2)/6
@@ -260,7 +259,7 @@ end
  to compute M⁻¹∮ n.(u-u*)lⁱ
 """
 
-function 𝓔(fMask::Array{Int64,1}, ξ::RefGrid{1})
+function 𝓔(fMask::Vector{Int64}, ξ::RefGrid{1})
   Emat = zeros(ξ.Np, 2)
   Emat[1, 1] = 1.
   Emat[ξ.Np, 2] = 1.
@@ -270,7 +269,7 @@ end
 """
 computes flux integral 
 """
-function 𝓔(fMask::Array{Int64,2}, r::Array{Float64, 1}, s::Array{Float64, 1})
+function 𝓔(fMask::Matrix{Int64}, r::Vector{Float64}, s::Vector{Float64})
 
   nFaces = 3
   np = length(r)
