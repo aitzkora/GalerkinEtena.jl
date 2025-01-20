@@ -1,9 +1,9 @@
 """
-computeElementaryMatrices2D(r::Array{Float64,1},s::Array{Float64,1}, N::Int)
-computes the elementary matrices  𝓥, 𝓓ᵣ, 𝓓ₛ on the r,s coordinates corresponding to the integration grid
+computeElementaryMatrices2D(r::Vector{Float64},s::Vector{Float64}, N::Int)
+computes the elementary matrices  𝓥, 𝓓ᵣ, 𝓓ₛ on the (r,s) coordinates corresponding to the integration grid
 """
 
-function computeElementaryMatrices2D(r::Array{Float64,1}, s::Array{Float64,1},N::Int)
+function computeElementaryMatrices2D(r::Vector{Float64}, s::Vector{Float64},N::Int)
 
     Np = (N+1)*(N+2)÷2
 
@@ -55,5 +55,3 @@ function computeElementaryMatrices2D(r::Array{Float64,1}, s::Array{Float64,1},N:
     𝓓ₛ = 𝓥ₛ / 𝓥
     return 𝓥, 𝓓ᵣ, 𝓓ₛ
 end
-
-

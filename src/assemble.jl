@@ -31,8 +31,9 @@ retrieves the index of the boundary nodes on the reference element
 """
 function mask(ξ::RefGrid{1})
     nodePrecision = 1e-12
-    m1 = findall(abs.(ξ.r[:,1] .+ 1) .< nodePrecision)
-    m2 = findall(abs.(ξ.r[:,1] .- 1) .< nodePrecision)
+    # remember in 1D : [-1,1] is the ref element
+    m1 = findall(abs.(ξ.r[:,1] .+ 1) .< nodePrecision) # "equal" to -1
+    m2 = findall(abs.(ξ.r[:,1] .- 1) .< nodePrecision) # "equal" to 1
     return [m1; m2]
 end
 
@@ -51,7 +52,7 @@ end
 """
     e2e, e2f = connect(m::SimplexMesh{D})
 
-constructs the Element to Element (e2e) and Element to Face (e2f) matrices :
+constructs the Element to Element (e2e) and Element to Face (e2f) sparse matrices :
 - e2eᵢⱼ = k ⇔ element i is connected to k trough its j face if k ≠ i
 - e2fᵢⱼ = l ⇔ element i is connected to k trough its j face corresponding to l face in element k
 """

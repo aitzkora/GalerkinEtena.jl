@@ -52,7 +52,7 @@ end
 
 computes the right hand side of the advection problem
 """
-function rhs1D(ad::Advec{1}, u::Array{Float64,2}, t::Float64, a::Float64, α::Float64)
+function rhs1D(ad::Advec{1}, u::Matrix{Float64}, t::Float64, a::Float64, α::Float64)
     mapI = 1
     mapO = ad.m.K * 2
     vmapI = 1

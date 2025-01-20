@@ -7,23 +7,23 @@ structure for modelizing the 1D Maxwell's equation
 """
 struct Maxwell1D
     m::SimplexMesh{1}
-    ξ::Array{Float64,1}
-    x::Array{Float64,2}
-    vmapM::Array{Int64,1}
-    vmapP::Array{Int64,1}
-    vmapB::Array{Int64,1}
-    mapB::Array{Int64,1}
-    nx::Array{Float64,2}
-    rx::Array{Float64,2}
-    𝓓ᵣ::Array{Float64,2}
-    fScale::Array{Float64,2}
-    lift::Array{Float64,2}
-    ε::Array{Float64,2}
-    μ::Array{Float64,2}
+    ξ::RefGrid{1}
+    x::Matrix{Float64}
+    vmapM::Vector{Int64}
+    vmapP::Vector{Int64}
+    vmapB::Vector{Int64}
+    mapB::Vector{Int64}
+    nx::Matrix{Float64}
+    rx::Matrix{Float64}
+    𝓓ᵣ::Matrix{Float64}
+    fScale::Matrix{Float64}
+    lift::Matrix{Float64}
+    ε::Matrix{Float64}
+    μ::Matrix{Float64}
 
     function Maxwell1D(m::SimplexMesh{1}, ξ::RefGrid{1})
         nx = normals(m)
-        x, vmapM, vmapP = Discretize(m, ξ)
+        x, vmapM, vmapP = discretize(m, ξ)
 
         mapB  = findall( vmapM .== vmapP )
         vmapB = vmapM[ vmapM .== vmapP ]
@@ -34,15 +34,14 @@ struct Maxwell1D
         J = 𝓓ᵣ * x
         rx = 1. ./ J
         fScale = 1. ./ J[fmask, :]
-
         lift = 𝓥 * 𝓥' * 𝓔(fmask, ξ)
        
-        K_2 = convert(Int64, K / 2)
+        K_2 = convert(Int64, m.K / 2)
         ε₁ = [ ones(1, K_2) 2*ones(1, K_2) ]
-        μ₁ = ones(1, K)
+        μ₁ = ones(1, m.K)
 
-        ε = ones(Np, 1) * ε₁
-        μ = ones(Np, 1) * μ₁ 
+        ε = ones(ξ.Np, 1) * ε₁
+        μ = ones(ξ.Np, 1) * μ₁ 
 
         # create the object
         new(m, ξ, x, vmapM, vmapP, vmapB, mapB, nx, rx, 𝓓ᵣ, fScale, lift, ε, μ)
@@ -55,29 +54,29 @@ end
 
 compute the right hand side of the maxwell equation with  `u = [E, H]`
 """
-function rhs1D(pb::Maxwell1D, u::Array{Float64,2}, t::Float64)
+function rhs1D(pb::Maxwell1D, u::Matrix{Float64}, t::Float64)
     m_u_2 = convert(Int64, floor(size(u, 1) / 2))
     E = u[1:m_u_2,:]
     H = u[m_u_2+1:end,:]
 
     Zimp = sqrt.(pb.μ ./pb.ε)
 
-    dE = zeros(2, pb.K)
+    dE = zeros(2, pb.m.K)
     dE[:] = E[pb.vmapM] - E[pb.vmapP]
 
-    dH = zeros(2, pb.K)
+    dH = zeros(2, pb.m.K)
     dH[:] = H[pb.vmapM] - H[pb.vmapP]
 
-    Zimpm = zeros(2, pb.K)
+    Zimpm = zeros(2, pb.m.K)
     Zimpm[:] = Zimp[pb.vmapM]
 
-    Zimpp = zeros(2, pb.K)
+    Zimpp = zeros(2, pb.m.K)
     Zimpp[:] = Zimp[pb.vmapP]
 
-    Yimpm = zeros(2, pb.K)
+    Yimpm = zeros(2, pb.m.K)
     Yimpm[:] = 1. ./ Zimpm[:]
 
-    Yimpp = zeros(2, pb.K)
+    Yimpp = zeros(2, pb.m.K)
     Yimpp[:] = 1. ./ Zimpp[:]
 
     # Homogenenous Boundary Conditions Ez=0
